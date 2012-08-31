@@ -38,4 +38,6 @@ Here's an example
 >}
 >```
 >
+>If you have a textfield in a UIAlertView be sure to call "startWatchingFor..." everytime you show the alert.
+>
 >You're done!
