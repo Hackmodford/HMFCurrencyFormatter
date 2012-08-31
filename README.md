@@ -5,27 +5,37 @@ A piece of code that will automatically format a uitextfield with a numberpad to
 
 Here's an example
 
-1. Create a property for the formatter
-
-@property (nonatomic, retain) MSCurrencyFormatter *priceFormatter;
-
-2. In the viewDidLoad make sure to initalize
-
-self.priceFormatter = [[MSCurrencyFormatter alloc] init];
-
-3. Wherever you setup your textfield set the priceFormatter as the delegate
-
-myTextField.delegate = self.priceFormatter;
-
-4. To automatically add the "+/-" button to the numberpad (iphone only) call this method.
-
-[self.priceFormatter startWatchingForKeyboardFromTextField:myTextField];
-
-5. (optional) if you want to handle the delegation yourself you can do this also.
-
-- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-  
-  textField.text = [MSCurrencyFormatter formatTextField:textField withReplacementString:string]
-  return NO;
-
-6. You're done!
+>Create a property for the formatter
+>
+>```objective-c
+>@property (nonatomic, retain) MSCurrencyFormatter *priceFormatter;
+>```
+>In the viewDidLoad make sure to initalize
+>
+>```objective-c
+>self.priceFormatter = [[MSCurrencyFormatter alloc] init];
+>```
+>
+>Wherever you setup your textfield set the priceFormatter as the delegate
+>
+>```objective-c
+>myTextField.delegate = self.priceFormatter;
+>```
+>
+>To automatically add the "+/-" button to the numberpad (iphone only) call this method.
+>
+>```objective-c
+>[self.priceFormatter startWatchingForKeyboardFromTextField:myTextField];
+>```
+>
+>(optional) if you want to handle the delegation yourself you can do this also.
+>
+>```objective-c
+>- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+>  
+>  textField.text = [MSCurrencyFormatter formatTextField:textField withReplacementString:string]
+>  return NO;
+>}
+>```
+>
+>You're done!
