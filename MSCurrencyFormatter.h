@@ -8,14 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-@interface MSCurrencyFormatter : NSObject <UITextFieldDelegate> 
-
-@property (nonatomic, strong) UIButton *toggleButton;
-@property (nonatomic, weak) UITextField *assignedTextField;
+@interface MSCurrencyFormatter : NSObject <UITextFieldDelegate>
 
 -(void)startWatchingForKeyboardFromTextField:(UITextField *)textField;
-
--(void)endWatchingForKeyboard;
 
 +(NSString *)formatTextField:(UITextField *)textField withReplacementString:(NSString *)string;
 
