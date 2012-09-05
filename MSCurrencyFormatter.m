@@ -31,7 +31,7 @@
             self.toggleButton.adjustsImageWhenHighlighted = NO;
             [self.toggleButton setImage:[UIImage imageNamed:@"toggleButtonUp.png"] forState:UIControlStateNormal];
             [self.toggleButton setImage:[UIImage imageNamed:@"toggleButtonDown.png"] forState:UIControlStateHighlighted];
-            [self.toggleButton addTarget:self action:@selector(doneButton:) forControlEvents:UIControlEventTouchUpInside];
+            [self.toggleButton addTarget:self action:@selector(toggleButton:) forControlEvents:UIControlEventTouchUpInside];
             
         }
         
@@ -106,7 +106,7 @@
         }
         
         //textfield must have something in it otherwise this will crash.
-        if ([self.assignedTextField.text length] == 0) {
+        if ([self.assignedTextField.text length] == 0 && self.assignedTextField.delegate == self) {
             self.assignedTextField.text = @"$0.00";
         }
 
@@ -175,16 +175,19 @@
     
 }
 
--(void)doneButton:(id)sender {
+-(void)toggleButton:(id)sender {
+    
+    if ([self.assignedTextField.text length] > 0) {
         
-    if ([[self.assignedTextField.text substringToIndex:1] isEqualToString:@"-"]) {
-        
-        self.assignedTextField.text = [self.assignedTextField.text substringFromIndex:1];
-        
-    } else {
-        
-        NSString *newString = @"-";
-        self.assignedTextField.text = [newString stringByAppendingString:self.assignedTextField.text];
+        if ([[self.assignedTextField.text substringToIndex:1] isEqualToString:@"-"]) {
+            
+            self.assignedTextField.text = [self.assignedTextField.text substringFromIndex:1];
+            
+        } else {
+            
+            NSString *newString = @"-";
+            self.assignedTextField.text = [newString stringByAppendingString:self.assignedTextField.text];
+        }
     }
 }
 
