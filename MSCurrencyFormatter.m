@@ -54,7 +54,7 @@
     
     if (![[[UIDevice currentDevice] model] isEqualToString:@"iPad"]) {
         
-        NSLog(@"start watching for keyboard");
+        //NSLog(@"start watching for keyboard");
         
 
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -84,7 +84,7 @@
 
     if ([self.assignedTextField isFirstResponder] && self.newButton) {
         
-        NSLog(@"A new button is needed.");
+        //NSLog(@"A new button is needed.");
         
         [self addButtonToKeyboard];
         
@@ -101,7 +101,7 @@
         
         //this will catch if a keyboard was already present and we changed first responder to our keyboard and need to add the button.
         if (self.newButton && self.keyboardDidShow) {
-          NSLog(@"keyboard started editing and newButton is needed and the keyboard is already visible");
+            //NSLog(@"keyboard started editing and newButton is needed and the keyboard is already visible");
             [self addButtonToKeyboard];
         }
         
@@ -132,13 +132,13 @@
     
     self.newButton = TRUE;
     self.keyboardDidShow = FALSE;
-    NSLog(@"Button is gone");
+    //NSLog(@"Button is gone");
     
 }
 
 -(void)endWatchingForKeyboard {
     
-    NSLog(@"end watching for keyboard");
+    //NSLog(@"end watching for keyboard");
         
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
@@ -148,7 +148,7 @@
 
 -(void)addButtonToKeyboard {
     
-    NSLog(@"add Button");
+    //NSLog(@"add Button");
 
     //If a alertview is present with a textfield the viewIndex will be different than 1
     NSInteger viewIndex = 1;
@@ -176,17 +176,16 @@
 }
 
 -(void)toggleButton:(id)sender {
-    
+
     if ([self.assignedTextField.text length] > 0) {
         
         if ([[self.assignedTextField.text substringToIndex:1] isEqualToString:@"-"]) {
             
-            self.assignedTextField.text = [self.assignedTextField.text substringFromIndex:1];
+            [self.assignedTextField.delegate textField:self.assignedTextField shouldChangeCharactersInRange:[self.assignedTextField.text rangeOfString:@"-"] replacementString:@""];
             
         } else {
             
-            NSString *newString = @"-";
-            self.assignedTextField.text = [newString stringByAppendingString:self.assignedTextField.text];
+            [self.assignedTextField.delegate textField:self.assignedTextField shouldChangeCharactersInRange:NSMakeRange(0, 1) replacementString:@"-"];
         }
     }
 }
@@ -208,14 +207,14 @@
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     
-    textField.text = [MSCurrencyFormatter formatTextField:textField withReplacementString:string];
+    textField.text = [MSCurrencyFormatter formatTextField:textField withCharactersInRange:range withReplacementString:string];
     return NO;
     
 }
 
 #pragma mark Class Methods
 
-+(NSString *)formatTextField:(UITextField *)textField withReplacementString:(NSString *)string {
++(NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string {
     
     //this is specifically for ipads though in theory it would work for iphones
     //If user types a - just flip/flop to a negative or positive number.
@@ -228,6 +227,13 @@
             
             NSString *newString = @"-";
             return textField.text = [newString stringByAppendingString:textField.text];
+        
+    }
+    
+    //This is for if we're removing the negative
+    if (range.location == 0 && range.length == 1 && [string isEqualToString:@""]) {
+        
+        return [textField.text substringFromIndex:1];
         
     }
     
@@ -320,5 +326,28 @@
     return results;
     
 }
+
++(NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string {
+    
+    NSMutableString *strippedString = [NSMutableString stringWithCapacity:string.length];
+    
+    NSScanner *scanner = [NSScanner scannerWithString:string];
+    NSCharacterSet *numbers = [NSCharacterSet
+                               characterSetWithCharactersInString:@"0123456789.-"];
+    
+    while ([scanner isAtEnd] == NO) {
+        NSString *buffer;
+        if ([scanner scanCharactersFromSet:numbers intoString:&buffer]) {
+            [strippedString appendString:buffer];
+            
+        } else {
+            [scanner setScanLocation:([scanner scanLocation] + 1)];
+        }
+    }
+    
+    return [NSDecimalNumber decimalNumberWithString:strippedString];
+    
+}
+    
 
 @end

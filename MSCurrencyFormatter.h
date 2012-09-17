@@ -12,6 +12,8 @@
 
 -(void)startWatchingForKeyboardFromTextField:(UITextField *)textField;
 
-+(NSString *)formatTextField:(UITextField *)textField withReplacementString:(NSString *)string;
++(NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string;
+
++(NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string;
 
 @end
