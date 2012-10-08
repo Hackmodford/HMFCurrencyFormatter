@@ -51,7 +51,8 @@
 -(void)startWatchingForKeyboardFromTextField:(UITextField *)textField {
     
     self.assignedTextField = textField;
-    
+    self.assignedTextField.keyboardType = UIKeyboardTypeNumberPad;
+
     if (![[[UIDevice currentDevice] model] isEqualToString:@"iPad"]) {
         
         //NSLog(@"start watching for keyboard");
@@ -177,16 +178,10 @@
 
 -(void)toggleButton:(id)sender {
 
+    
     if ([self.assignedTextField.text length] > 0) {
         
-        if ([[self.assignedTextField.text substringToIndex:1] isEqualToString:@"-"]) {
-            
-            [self.assignedTextField.delegate textField:self.assignedTextField shouldChangeCharactersInRange:[self.assignedTextField.text rangeOfString:@"-"] replacementString:@""];
-            
-        } else {
-            
-            [self.assignedTextField.delegate textField:self.assignedTextField shouldChangeCharactersInRange:NSMakeRange(0, 1) replacementString:@"-"];
-        }
+        [self.assignedTextField.delegate textField:self.assignedTextField shouldChangeCharactersInRange:NSMakeRange(0, 1) replacementString:@"-"];
     }
 }
 
@@ -216,7 +211,6 @@
 
 +(NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string {
     
-    //this is specifically for ipads though in theory it would work for iphones
     //If user types a - just flip/flop to a negative or positive number.
     if ([string hasSuffix:@"-"]) {
         if ([[textField.text substringToIndex:1] isEqualToString:@"-"]) {
