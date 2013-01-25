@@ -10,8 +10,11 @@
 
 @interface MSCurrencyFormatter ()
 
+@property (nonatomic, strong) NSLocale *locale;
+@property (nonatomic, strong) NSNumberFormatter *formatter;
 @property (nonatomic, strong) UIButton *toggleButton;
 @property (nonatomic, weak) UITextField *assignedTextField;
+@property (nonatomic, assign) BOOL withToggleButton;
 @property (nonatomic, assign) BOOL newButton;
 @property (nonatomic, assign) BOOL keyboardDidShow;
 
@@ -19,329 +22,222 @@
 
 @implementation MSCurrencyFormatter
 
-- (id)init {
-    
-    if ((self = [super init])) {
-        
-        if (self.toggleButton == nil) {
-            
-            // create custom button
-            self.toggleButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            self.toggleButton.frame = CGRectMake(0, 163, 105, 53);
-            self.toggleButton.adjustsImageWhenHighlighted = NO;
-            [self.toggleButton setImage:[UIImage imageNamed:@"toggleButtonUp.png"] forState:UIControlStateNormal];
-            [self.toggleButton setImage:[UIImage imageNamed:@"toggleButtonDown.png"] forState:UIControlStateHighlighted];
-            [self.toggleButton addTarget:self action:@selector(toggleButton:) forControlEvents:UIControlEventTouchUpInside];
-            
-        }
-        
-        self.newButton = TRUE;
+- (id)initWithLocale:(NSLocale *)locale withToggleButton:(BOOL)toggleButton
+{
+  if (self = [super init]) {
+    [self setLocale:locale];
+    [self setWithToggleButton:toggleButton];
+    [self setFormatter:[[NSNumberFormatter alloc] init]];
+    [[self formatter] setNumberStyle:NSNumberFormatterCurrencyStyle];
+    [[self formatter] setLocale:[self locale]];
+
+    if ([self withToggleButton] && [[self toggleButton] isEqual:nil]) {
+      [self setToggleButton:[UIButton buttonWithType:UIButtonTypeCustom]];
+
+      [[self toggleButton] setFrame:CGRectMake(0, 163, 105, 53)];
+      [[self toggleButton] setAdjustsImageWhenHighlighted:NO];
+      [[self toggleButton] setImage:[UIImage imageNamed:@"toggleButtonUp.png"] forState:UIControlStateNormal];
+      [[self toggleButton] setImage:[UIImage imageNamed:@"toggleButtonDown.png"] forState:UIControlStateHighlighted];
+      [[self toggleButton] addTarget:self action:@selector(toggleButton:) forControlEvents:UIControlEventTouchUpInside];
     }
-    
-    return self;
+    [self setNewButton:TRUE];
+  }
+
+  return self;
+}
+
+- (id)initWithLocale:(NSLocale *)locale
+{
+  return [self initWithLocale:locale withToggleButton:NO];
+}
+
+- (id)init
+{
+  return [self initWithLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
 }
 
 #pragma mark UIKeyboard Notifications
 
--(void)dealloc {
-    
-    [self endWatchingForKeyboard];
+- (void)dealloc
+{
+  [self endWatchingForKeyboard];
 }
 
--(void)startWatchingForKeyboardFromTextField:(UITextField *)textField {
-    
-    self.assignedTextField = textField;
-    self.assignedTextField.keyboardType = UIKeyboardTypeNumberPad;
+- (void)startWatchingForKeyboardFromTextField:(UITextField *)textField
+{
+  self.assignedTextField = textField;
+  self.assignedTextField.keyboardType = UIKeyboardTypeNumberPad;
 
-    if (![[[UIDevice currentDevice] model] isEqualToString:@"iPad"]) {
-        
-        //NSLog(@"start watching for keyboard");
-        
-
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(keyboardDidShow:)
-                                                     name:UIKeyboardDidShowNotification
-                                                   object:nil];
-        
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(keyboardStartedEditing:)
-                                                     name:UITextFieldTextDidBeginEditingNotification
-                                                   object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(keyboardWasDismissed:)
-                                                     name:UIKeyboardWillHideNotification
-                                                   object:nil];
-        
-        
-        
+  if (![[[UIDevice currentDevice] model] isEqualToString:@"iPad"]) {
+    if ([self withToggleButton]) {
+      [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
     }
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardStartedEditing:) name:UITextFieldTextDidBeginEditingNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWasDismissed:) name:UIKeyboardWillHideNotification object:nil];
+  }
 }
 
+- (void)keyboardDidShow:(NSNotification *)note
+{
+  self.keyboardDidShow = TRUE;
+  if ([self.assignedTextField isFirstResponder] && self.newButton) [self addButtonToKeyboard];
+}
 
-
-- (void)keyboardDidShow:(NSNotification *)note {
-    
-    self.keyboardDidShow = TRUE;
-
-    if ([self.assignedTextField isFirstResponder] && self.newButton) {
-        
-        //NSLog(@"A new button is needed.");
-        
-        [self addButtonToKeyboard];
-        
+- (void)keyboardStartedEditing:(NSNotification *)note
+{
+  if ([[self assignedTextField] isFirstResponder]) {
+    if ([self withToggleButton] && [self newButton] && [self keyboardDidShow]) [self addButtonToKeyboard];
+    if ([[[self assignedTextField] text] length] == 0 && [[[self assignedTextField] delegate] isEqual:self]) {
+      [[self assignedTextField] setText:[[self formatter] stringFromNumber:[NSNumber numberWithFloat:0.0]]];
     }
-    
+    [[self toggleButton] setHidden:NO];
+    [[self toggleButton] setUserInteractionEnabled:YES];
+  } else {
+    [[self toggleButton] setHidden:YES];
+    [[self toggleButton] setUserInteractionEnabled:NO];
+  }
 }
 
+- (void)keyboardWasDismissed:(NSNotification *)note
+{
+  if ([self doesAlertViewExist]) [self endWatchingForKeyboard];
 
-- (void)keyboardStartedEditing:(NSNotification *)note {
-    
-    //This removes the button if we go to a different textfield.
-    
-    if ([self.assignedTextField isFirstResponder]) {
-        
-        //this will catch if a keyboard was already present and we changed first responder to our keyboard and need to add the button.
-        if (self.newButton && self.keyboardDidShow) {
-            //NSLog(@"keyboard started editing and newButton is needed and the keyboard is already visible");
-            [self addButtonToKeyboard];
-        }
-        
-        //textfield must have something in it otherwise this will crash.
-        if ([self.assignedTextField.text length] == 0 && self.assignedTextField.delegate == self) {
-            self.assignedTextField.text = @"$0.00";
-        }
-
-        self.toggleButton.hidden = NO;
-        self.toggleButton.userInteractionEnabled = YES;
-        
-    } else {
-        
-        self.toggleButton.hidden = YES;
-        self.toggleButton.userInteractionEnabled = NO;
-        
-    }
- 
+  [self setNewButton:TRUE];
+  if ([self withToggleButton]) [self setKeyboardDidShow:FALSE];
 }
 
-- (void)keyboardWasDismissed:(NSNotification *)note {
-    
-    
-    if ([self doesAlertViewExist]) {
-        //alertViewExists therefore uitextfield will soon be released stop watching for events now to fix memory management bugs.
-        [self endWatchingForKeyboard];
-    }
-    
-    self.newButton = TRUE;
-    self.keyboardDidShow = FALSE;
-    //NSLog(@"Button is gone");
-    
-}
-
--(void)endWatchingForKeyboard {
-    
-    //NSLog(@"end watching for keyboard");
-        
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    
+- (void)endWatchingForKeyboard
+{
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark Private Methods
 
--(void)addButtonToKeyboard {
-    
-    //NSLog(@"add Button");
+- (void)addButtonToKeyboard
+{
+  NSInteger viewIndex = ([self doesAlertViewExist]) ? 2 : 1;
+  UIWindow* tempWindow = [[[UIApplication sharedApplication] windows] objectAtIndex:viewIndex];
 
-    //If a alertview is present with a textfield the viewIndex will be different than 1
-    NSInteger viewIndex = 1;
-    
-    if ([self doesAlertViewExist]) {
-        viewIndex = 2;
+  for (UIView *keyboard in [tempWindow subviews]) {
+    if ([[keyboard description] hasPrefix:@"<UIPeripheralHostView"] == YES) {
+      [keyboard addSubview:[self toggleButton]];
+      self.newButton = FALSE;
     }
-    
-    // locate keyboard view
-    UIWindow* tempWindow = [[[UIApplication sharedApplication] windows] objectAtIndex:viewIndex];
-    UIView* keyboard;
-    for(int i=0; i < [tempWindow.subviews count]; i++) {
-        
-        keyboard = [tempWindow.subviews objectAtIndex:i];
-        // keyboard view found; add the custom button to it
-        if([[keyboard description] hasPrefix:@"<UIPeripheralHostView"] == YES) {
-                        
-            [keyboard addSubview:self.toggleButton];
-            
-            self.newButton = FALSE;
-            
-        }
-    }
-    
+  }
 }
 
--(void)toggleButton:(id)sender {
-
-    
-    if ([self.assignedTextField.text length] > 0) {
-        
-        [self.assignedTextField.delegate textField:self.assignedTextField shouldChangeCharactersInRange:NSMakeRange(0, 1) replacementString:@"-"];
-    }
+- (void)toggleButton:(id)sender
+{
+  if ([[[self assignedTextField] text] length] > 0) {
+    [[[self assignedTextField] delegate] textField:[self assignedTextField] shouldChangeCharactersInRange:NSMakeRange(0, 1) replacementString:@"-"];
+  }
 }
 
-- (BOOL) doesAlertViewExist {
-    
-    for (UIWindow* window in [UIApplication sharedApplication].windows) {
-        for (UIView* view in window.subviews) {
-            BOOL alert = [view isKindOfClass:[UIAlertView class]];
-            BOOL action = [view isKindOfClass:[UIActionSheet class]];
-            if (alert || action)
-                return YES;
-        }
+- (BOOL)doesAlertViewExist
+{
+  for (UIWindow* window in [[UIApplication sharedApplication] windows]) {
+    for (UIView* view in [window subviews]) {
+      if ([view isKindOfClass:[UIAlertView class]] || [view isKindOfClass:[UIActionSheet class]]) return YES;
     }
-    return NO;
+  }
+  return NO;
 }
 
 #pragma mark UITextField Delegate Methods
 
-- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    
-    textField.text = [MSCurrencyFormatter formatTextField:textField withCharactersInRange:range withReplacementString:string];
-    return NO;
-    
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+  [textField setText:[self formatTextField:textField withCharactersInRange:range withReplacementString:string]];
+  return NO;
 }
 
 #pragma mark Class Methods
 
-+(NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string {
-    
-    //If user types a - just flip/flop to a negative or positive number.
-    if ([string hasSuffix:@"-"]) {
-        if ([[textField.text substringToIndex:1] isEqualToString:@"-"]) {
-            
-            return textField.text = [textField.text substringFromIndex:1];
-            
-        }
-            
-            NSString *newString = @"-";
-            return textField.text = [newString stringByAppendingString:textField.text];
-        
-    }
-    
-    //This is for if we're removing the negative
-    if (range.location == 0 && range.length == 1 && [string isEqualToString:@""]) {
-        
-        return [textField.text substringFromIndex:1];
-        
-    }
-    
-    NSInteger currencyScale;
+- (NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string
+{
+  NSString *minus = @"-";
 
-    //setup formatter
-    NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-    [formatter setNumberStyle:NSNumberFormatterCurrencyStyle];
-    currencyScale = -1 * [formatter maximumFractionDigits];
-    
-    //First analyze string for numbers only.
-    NSMutableString *filteredString = [NSMutableString stringWithCapacity:textField.text.length];
-    NSScanner *scanner = [NSScanner scannerWithString:textField.text];
-    NSCharacterSet *allowedChars = [NSCharacterSet characterSetWithCharactersInString:@"0123456789"];
-    
-    while ([scanner isAtEnd] == NO) {
-        NSString *buffer;
-        if ([scanner scanCharactersFromSet:allowedChars intoString:&buffer]) {
-            [filteredString appendString:buffer];
-        } else {
-            [scanner setScanLocation:([scanner scanLocation] + 1)];
-        }
+  if ([string hasSuffix:minus]) {
+    if ([[[textField text] substringToIndex:1] isEqualToString:minus]) {
+      return textField.text = [[textField text] substringFromIndex:1];
     }
-    
-    NSString *enteredDigits = filteredString;
-    
-    
-    // Next Check if it is negative and remember that.
-    BOOL isNegative = FALSE;
-    
-    if ([[textField.text substringToIndex:1] isEqualToString:@"-"]) {
-        
-        isNegative = TRUE;
-        
-    }
-    
-    
-    //only allow numbers to be entered via keypad/keyboard
-    NSCharacterSet *myCharSet = [NSCharacterSet characterSetWithCharactersInString:@"0123456789"];
-    for (int i = 0; i < [string length]; i++) {
-        unichar c = [string characterAtIndex:i];
-        if (![myCharSet characterIsMember:c]) {
-            
-            return textField.text;
-        }
-    }
-    
-    // Check the length of the string
-    if ([string length]) {
-        if ([enteredDigits length] > 10) {
-            //This makes sure that we don't have a long price.
+    return textField.text = [minus stringByAppendingString:[textField text]];
+  }
+  if (range.location == 0 && range.length == 1 && [string isEqualToString:@""]) {
+    return [[textField text] substringFromIndex:1];
+  }
 
-            return textField.text;
-        } else {
-            
-            enteredDigits = [enteredDigits stringByAppendingFormat:@"%d", [string integerValue]];
-            
-        }
+  NSInteger currencyScale = -1 * [[self formatter] maximumFractionDigits];
+  NSMutableString *filteredString = [NSMutableString stringWithCapacity:[[textField text] length]];
+  NSScanner *scanner = [NSScanner scannerWithString:[textField text]];
+  NSCharacterSet *allowedChars = [NSCharacterSet characterSetWithCharactersInString:@"0123456789"];
+
+  while ([scanner isAtEnd] == NO) {
+    NSString *buffer;
+    if ([scanner scanCharactersFromSet:allowedChars intoString:&buffer]) {
+      [filteredString appendString:buffer];
     } else {
-        
-        // This is a backspace
-        NSUInteger len = [enteredDigits length];
-        if (len > 1) {
-            
-            enteredDigits = [enteredDigits substringWithRange:NSMakeRange(0, len - 1)];
-        } else {
-            
-            enteredDigits = @"";
-        }
+      [scanner setScanLocation:([scanner scanLocation] + 1)];
     }
-    
-    NSDecimalNumber *decimal = nil;
-    
-    if ( ![enteredDigits isEqualToString:@""]) {
-        decimal = [[NSDecimalNumber decimalNumberWithString:enteredDigits] decimalNumberByMultiplyingByPowerOf10:currencyScale];
+  }
+
+  NSString *enteredDigits = filteredString;
+  BOOL isNegative = [[[textField text] substringToIndex:1] isEqualToString:minus];
+
+  NSCharacterSet *myCharSet = [NSCharacterSet characterSetWithCharactersInString:@"0123456789"];
+  for (int i = 0; i < [string length]; i++) {
+    if (![myCharSet characterIsMember:[string characterAtIndex:i]]) return [textField text];
+  }
+
+  if ([string length]) {
+    if ([enteredDigits length] > 10) {
+      return [textField text];
     } else {
-        decimal = [NSDecimalNumber zero];
+      enteredDigits = [enteredDigits stringByAppendingFormat:@"%d", [string integerValue]];
     }
-    
-    // Replace the text with the localized decimal number
-    
-    NSString *results = @"";
-    
-    if (isNegative) {
-        results = [NSString stringWithFormat:@"-%@",[formatter stringFromNumber:decimal]];
+  } else {
+    NSUInteger len = [enteredDigits length];
+    if (len > 1) {
+      enteredDigits = [enteredDigits substringWithRange:NSMakeRange(0, len - 1)];
     } else {
-        results = [formatter stringFromNumber:decimal];
+      enteredDigits = @"";
     }
+  }
+
+  NSDecimalNumber *decimal = nil;
     
-    return results;
+  if (![enteredDigits isEqualToString:@""]) {
+    decimal = [[NSDecimalNumber decimalNumberWithString:enteredDigits] decimalNumberByMultiplyingByPowerOf10:currencyScale];
+  } else {
+    decimal = [NSDecimalNumber zero];
+  }
+
+  NSString *results = @"";
     
+  if (isNegative) {
+    results = [NSString stringWithFormat:@"-%@",[[self formatter] stringFromNumber:decimal]];
+  } else {
+    results = [[self formatter] stringFromNumber:decimal];
+  }
+  return results;
 }
 
-+(NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string {
-    
-    NSMutableString *strippedString = [NSMutableString stringWithCapacity:string.length];
-    
-    NSScanner *scanner = [NSScanner scannerWithString:string];
-    NSCharacterSet *numbers = [NSCharacterSet
-                               characterSetWithCharactersInString:@"0123456789.-"];
-    
-    while ([scanner isAtEnd] == NO) {
-        NSString *buffer;
-        if ([scanner scanCharactersFromSet:numbers intoString:&buffer]) {
-            [strippedString appendString:buffer];
-            
-        } else {
-            [scanner setScanLocation:([scanner scanLocation] + 1)];
-        }
++ (NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string
+{
+  NSMutableString *strippedString = [NSMutableString stringWithCapacity:[string length]];
+  NSScanner *scanner = [NSScanner scannerWithString:string];
+  NSCharacterSet *numbers = [NSCharacterSet characterSetWithCharactersInString:@"0123456789.-"];
+
+  while ([scanner isAtEnd] == NO) {
+    NSString *buffer;
+    if ([scanner scanCharactersFromSet:numbers intoString:&buffer]) {
+      [strippedString appendString:buffer];
+    } else {
+      [scanner setScanLocation:([scanner scanLocation] + 1)];
     }
-    
-    return [NSDecimalNumber decimalNumberWithString:strippedString];
-    
+  }
+
+  return [NSDecimalNumber decimalNumberWithString:strippedString];
 }
-    
 
 @end

@@ -10,10 +10,11 @@
 
 @interface MSCurrencyFormatter : NSObject <UITextFieldDelegate>
 
--(void)startWatchingForKeyboardFromTextField:(UITextField *)textField;
+- (id)initWithLocale:(NSLocale *)locale withToggleButton:(BOOL)toggleButton;
+- (id)initWithLocale:(NSLocale *)locale;
+- (void)startWatchingForKeyboardFromTextField:(UITextField *)textField;
+- (NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string;
 
-+(NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string;
-
-+(NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string;
++ (NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string;
 
 @end
