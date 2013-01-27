@@ -151,8 +151,6 @@
   return NO;
 }
 
-#pragma mark Class Methods
-
 - (NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string
 {
   NSString *minus = @"-";
@@ -221,6 +219,40 @@
   }
   return results;
 }
+
+#pragma mark UITextViewDelegate
+
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView
+{
+  if (nil != [self textViewShouldBeginEditingBlock]) {
+    [self textViewShouldBeginEditingBlock];
+  }
+  return YES;
+}
+
+- (void)textViewDidBeginEditing:(UITextView *)textView
+{
+  if (nil != [self textViewDidBeginEditingBlock]) {
+    [self textViewDidBeginEditingBlock];
+  }
+}
+
+- (BOOL)textViewShouldEndEditing:(UITextView *)textView
+{
+  if (nil != [self textViewShouldEndEditingBlock]) {
+    [self textViewShouldEndEditingBlock];
+  }
+  return YES;
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView
+{
+  if (nil != [self textViewDidEndEditingBlock]) {
+    [self textViewDidEndEditingBlock];
+  }
+}
+
+#pragma mark Class Methods
 
 + (NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string
 {
