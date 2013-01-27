@@ -220,35 +220,35 @@
   return results;
 }
 
-#pragma mark UITextViewDelegate
+#pragma mark UITextFieldDelegate
 
-- (BOOL)textViewShouldBeginEditing:(UITextView *)textView
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
-  if (nil != [self textViewShouldBeginEditingBlock]) {
-    [self textViewShouldBeginEditingBlock];
+  if ((void (^)(void))self.textFieldShouldBeginEditingBlock) {
+    self.textFieldShouldBeginEditingBlock();
   }
   return YES;
 }
 
-- (void)textViewDidBeginEditing:(UITextView *)textView
+- (void)textFieldDidBeginEditing:(UITextField *)textField
 {
-  if (nil != [self textViewDidBeginEditingBlock]) {
-    [self textViewDidBeginEditingBlock];
+  if ((void (^)(void))self.textFieldDidBeginEditingBlock) {
+    self.textFieldDidBeginEditingBlock();
   }
 }
 
-- (BOOL)textViewShouldEndEditing:(UITextView *)textView
+- (BOOL)textFieldShouldEndEditing:(UITextField *)textField
 {
-  if (nil != [self textViewShouldEndEditingBlock]) {
-    [self textViewShouldEndEditingBlock];
+  if ((void (^)(void))self.textFieldShouldEndEditingBlock) {
+    self.textFieldShouldEndEditingBlock();
   }
   return YES;
 }
 
-- (void)textViewDidEndEditing:(UITextView *)textView
+- (void)textFieldDidEndEditing:(UITextField *)textField
 {
-  if (nil != [self textViewDidEndEditingBlock]) {
-    [self textViewDidEndEditingBlock];
+  if ((void (^)(void))self.textFieldDidEndEditingBlock) {
+    self.textFieldDidEndEditingBlock();
   }
 }
 
