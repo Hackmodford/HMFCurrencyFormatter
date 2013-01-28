@@ -225,7 +225,7 @@
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
   if ((void (^)(void))self.textFieldShouldBeginEditingBlock) {
-    self.textFieldShouldBeginEditingBlock();
+    self.textFieldShouldBeginEditingBlock(textField);
   }
   return YES;
 }
@@ -233,14 +233,14 @@
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {
   if ((void (^)(void))self.textFieldDidBeginEditingBlock) {
-    self.textFieldDidBeginEditingBlock();
+    self.textFieldDidBeginEditingBlock(textField);
   }
 }
 
 - (BOOL)textFieldShouldEndEditing:(UITextField *)textField
 {
   if ((void (^)(void))self.textFieldShouldEndEditingBlock) {
-    self.textFieldShouldEndEditingBlock();
+    self.textFieldShouldEndEditingBlock(textField);
   }
   return YES;
 }
@@ -248,7 +248,7 @@
 - (void)textFieldDidEndEditing:(UITextField *)textField
 {
   if ((void (^)(void))self.textFieldDidEndEditingBlock) {
-    self.textFieldDidEndEditingBlock();
+    self.textFieldDidEndEditingBlock(textField);
   }
 }
 

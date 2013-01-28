@@ -10,10 +10,10 @@
 
 @interface MSCurrencyFormatter : NSObject <UITextFieldDelegate>
 
-@property (nonatomic, copy) void (^textFieldShouldBeginEditingBlock)();
-@property (nonatomic, copy) void (^textFieldDidBeginEditingBlock)();
-@property (nonatomic, copy) void (^textFieldShouldEndEditingBlock)();
-@property (nonatomic, copy) void (^textFieldDidEndEditingBlock)();
+@property (nonatomic, copy) void (^textFieldShouldBeginEditingBlock)(UITextField *textField);
+@property (nonatomic, copy) void (^textFieldDidBeginEditingBlock)(UITextField *textField);
+@property (nonatomic, copy) void (^textFieldShouldEndEditingBlock)(UITextField *textField);
+@property (nonatomic, copy) void (^textFieldDidEndEditingBlock)(UITextField *textField);
 
 - (id)initWithLocale:(NSLocale *)locale withToggleButton:(BOOL)toggleButton;
 - (id)initWithLocale:(NSLocale *)locale;
