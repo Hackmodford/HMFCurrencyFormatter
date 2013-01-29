@@ -13,8 +13,10 @@
 @property (nonatomic, strong) NSLocale *locale;
 @property (nonatomic, strong) NSNumberFormatter *formatter;
 @property (nonatomic, strong) UIButton *toggleButton;
+@property (nonatomic, strong) UIButton *doubleZerosButton;
 @property (nonatomic, weak) UITextField *assignedTextField;
 @property (nonatomic, assign) BOOL withToggleButton;
+@property (nonatomic, assign) BOOL withDoubleZerosButton;
 @property (nonatomic, assign) BOOL newButton;
 @property (nonatomic, assign) BOOL keyboardDidShow;
 
@@ -22,28 +24,61 @@
 
 @implementation MSCurrencyFormatter
 
-- (id)initWithLocale:(NSLocale *)locale withToggleButton:(BOOL)toggleButton
+- (id)initWithLocale:(NSLocale *)locale withExtraButton:(int)extraButton
 {
   if (self = [super init]) {
     [self setLocale:locale];
-    [self setWithToggleButton:toggleButton];
+
+    if (extraButton == 1) {
+      [self setWithToggleButton:YES];
+    } else if (extraButton == 2) {
+      [self setWithDoubleZerosButton:YES];
+    } else {
+      [self setWithToggleButton:NO];
+      [self setWithDoubleZerosButton:NO];
+    }
+
     [self setFormatter:[[NSNumberFormatter alloc] init]];
     [[self formatter] setNumberStyle:NSNumberFormatterCurrencyStyle];
     [[self formatter] setLocale:[self locale]];
-
+    
     if ([self withToggleButton] && [[self toggleButton] isEqual:nil]) {
-      [self setToggleButton:[UIButton buttonWithType:UIButtonTypeCustom]];
 
+      [self setToggleButton:[UIButton buttonWithType:UIButtonTypeCustom]];
       [[self toggleButton] setFrame:CGRectMake(0, 163, 105, 53)];
       [[self toggleButton] setAdjustsImageWhenHighlighted:NO];
       [[self toggleButton] setImage:[UIImage imageNamed:@"toggleButtonUp.png"] forState:UIControlStateNormal];
       [[self toggleButton] setImage:[UIImage imageNamed:@"toggleButtonDown.png"] forState:UIControlStateHighlighted];
       [[self toggleButton] addTarget:self action:@selector(toggleButton:) forControlEvents:UIControlEventTouchUpInside];
+
+    } else if ([self withDoubleZerosButton] && [[self doubleZerosButton] isEqual:nil]) {
+
+      [self setDoubleZerosButton:[UIButton buttonWithType:UIButtonTypeCustom]];
+      [[self doubleZerosButton] setFrame:CGRectMake(0, 163, 105, 53)];
+      [[self doubleZerosButton] setAdjustsImageWhenHighlighted:NO];
+      [[self doubleZerosButton] setImage:[UIImage imageNamed:@"doubleZerosButtonUp.png"] forState:UIControlStateNormal];
+      [[self doubleZerosButton] setImage:[UIImage imageNamed:@"doubleZerosButtonDown.png"] forState:UIControlStateHighlighted];
+      [[self doubleZerosButton] addTarget:self action:@selector(doubleZerosButton:) forControlEvents:UIControlEventTouchUpInside];
+
     }
     [self setNewButton:TRUE];
   }
-
+  
   return self;
+}
+
+- (id)initWithLocale:(NSLocale *)locale withDoubleZerosButton:(BOOL)doubleZerosButton
+{
+  int toggle = 0;
+  if (doubleZerosButton) toggle = 2;
+  return [self initWithLocale:locale withExtraButton:toggle];
+}
+
+- (id)initWithLocale:(NSLocale *)locale withToggleButton:(BOOL)toggleButton
+{
+  int toggle = 0;
+  if (toggleButton) toggle = 1;
+  return [self initWithLocale:locale withExtraButton:toggle];
 }
 
 - (id)initWithLocale:(NSLocale *)locale
@@ -69,7 +104,7 @@
   self.assignedTextField.keyboardType = UIKeyboardTypeNumberPad;
 
   if (![[[UIDevice currentDevice] model] isEqualToString:@"iPad"]) {
-    if ([self withToggleButton]) {
+    if ([self withToggleButton] || [self withDoubleZerosButton]) {
       [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardStartedEditing:) name:UITextFieldTextDidBeginEditingNotification object:nil];
@@ -79,22 +114,32 @@
 
 - (void)keyboardDidShow:(NSNotification *)note
 {
-  self.keyboardDidShow = TRUE;
-  if ([self.assignedTextField isFirstResponder] && self.newButton) [self addButtonToKeyboard];
+  [self setKeyboardDidShow:TRUE];
+  if ([[self assignedTextField] isFirstResponder] && [self newButton]) [self addButtonToKeyboard];
 }
 
 - (void)keyboardStartedEditing:(NSNotification *)note
 {
   if ([[self assignedTextField] isFirstResponder]) {
-    if ([self withToggleButton] && [self newButton] && [self keyboardDidShow]) [self addButtonToKeyboard];
+    if (([self withToggleButton] || [self withDoubleZerosButton]) && [self newButton] && [self keyboardDidShow]) [self addButtonToKeyboard];
     if ([[[self assignedTextField] text] length] == 0 && [[[self assignedTextField] delegate] isEqual:self]) {
       [[self assignedTextField] setText:[[self formatter] stringFromNumber:[NSNumber numberWithFloat:0.0]]];
     }
-    [[self toggleButton] setHidden:NO];
-    [[self toggleButton] setUserInteractionEnabled:YES];
+    if ([self withToggleButton]) {
+      [[self toggleButton] setHidden:NO];
+      [[self toggleButton] setUserInteractionEnabled:YES];
+    } else if ([self withDoubleZerosButton]) {
+      [[self doubleZerosButton] setHidden:NO];
+      [[self doubleZerosButton] setUserInteractionEnabled:YES];
+    }
   } else {
-    [[self toggleButton] setHidden:YES];
-    [[self toggleButton] setUserInteractionEnabled:NO];
+    if ([self withToggleButton]) {
+      [[self toggleButton] setHidden:YES];
+      [[self toggleButton] setUserInteractionEnabled:NO];
+    } else if ([self withDoubleZerosButton]) {
+      [[self doubleZerosButton] setHidden:YES];
+      [[self doubleZerosButton] setUserInteractionEnabled:NO];
+    }
   }
 }
 
@@ -103,7 +148,7 @@
   if ([self doesAlertViewExist]) [self endWatchingForKeyboard];
 
   [self setNewButton:TRUE];
-  if ([self withToggleButton]) [self setKeyboardDidShow:FALSE];
+  if ([self withToggleButton] || [self withDoubleZerosButton]) [self setKeyboardDidShow:FALSE];
 }
 
 - (void)endWatchingForKeyboard
@@ -120,8 +165,12 @@
 
   for (UIView *keyboard in [tempWindow subviews]) {
     if ([[keyboard description] hasPrefix:@"<UIPeripheralHostView"] == YES) {
-      [keyboard addSubview:[self toggleButton]];
-      self.newButton = FALSE;
+      if ([self withToggleButton]) {
+        [keyboard addSubview:[self toggleButton]];
+      } else if ([self withDoubleZerosButton]) {
+        [keyboard addSubview:[self doubleZerosButton]];
+      }
+      [self setNewButton:FALSE];
     }
   }
 }
@@ -130,6 +179,13 @@
 {
   if ([[[self assignedTextField] text] length] > 0) {
     [[[self assignedTextField] delegate] textField:[self assignedTextField] shouldChangeCharactersInRange:NSMakeRange(0, 1) replacementString:@"-"];
+  }
+}
+
+- (void)doubleZerosButton:(id)sender
+{
+  if ([[[self assignedTextField] text] length] > 0) {
+    [[self assignedTextField] setText:[[[self assignedTextField] text] stringByAppendingString:@"00"]];
   }
 }
 
@@ -143,7 +199,7 @@
   return NO;
 }
 
-#pragma mark UITextField Delegate Methods
+#pragma mark UITextFieldDelegate
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
@@ -219,8 +275,6 @@
   }
   return results;
 }
-
-#pragma mark UITextFieldDelegate
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {

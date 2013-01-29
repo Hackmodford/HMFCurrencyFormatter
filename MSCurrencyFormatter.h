@@ -15,6 +15,8 @@
 @property (nonatomic, copy) void (^textFieldShouldEndEditingBlock)(UITextField *textField);
 @property (nonatomic, copy) void (^textFieldDidEndEditingBlock)(UITextField *textField);
 
+- (id)initWithLocale:(NSLocale *)locale withExtraButton:(int)extraButton;
+- (id)initWithLocale:(NSLocale *)locale withDoubleZerosButton:(BOOL)doubleZerosButton;
 - (id)initWithLocale:(NSLocale *)locale withToggleButton:(BOOL)toggleButton;
 - (id)initWithLocale:(NSLocale *)locale;
 - (void)startWatchingForKeyboardFromTextField:(UITextField *)textField;
