@@ -41,9 +41,8 @@
     [self setFormatter:[[NSNumberFormatter alloc] init]];
     [[self formatter] setNumberStyle:NSNumberFormatterCurrencyStyle];
     [[self formatter] setLocale:[self locale]];
-    
-    if ([self withToggleButton] && [[self toggleButton] isEqual:nil]) {
 
+    if ([self withToggleButton] && ![self toggleButton]) {
       [self setToggleButton:[UIButton buttonWithType:UIButtonTypeCustom]];
       [[self toggleButton] setFrame:CGRectMake(0, 163, 105, 53)];
       [[self toggleButton] setAdjustsImageWhenHighlighted:NO];
@@ -51,8 +50,7 @@
       [[self toggleButton] setImage:[UIImage imageNamed:@"toggleButtonDown.png"] forState:UIControlStateHighlighted];
       [[self toggleButton] addTarget:self action:@selector(toggleButton:) forControlEvents:UIControlEventTouchUpInside];
 
-    } else if ([self withDoubleZerosButton] && [[self doubleZerosButton] isEqual:nil]) {
-
+    } else if ([self withDoubleZerosButton] && ![self doubleZerosButton]) {
       [self setDoubleZerosButton:[UIButton buttonWithType:UIButtonTypeCustom]];
       [[self doubleZerosButton] setFrame:CGRectMake(0, 163, 105, 53)];
       [[self doubleZerosButton] setAdjustsImageWhenHighlighted:NO];
@@ -185,7 +183,9 @@
 - (void)doubleZerosButton:(id)sender
 {
   if ([[[self assignedTextField] text] length] > 0) {
-    [[self assignedTextField] setText:[[[self assignedTextField] text] stringByAppendingString:@"00"]];
+    for (int i = 0; i < 2; i++) {
+      [[[self assignedTextField] delegate] textField:[self assignedTextField] shouldChangeCharactersInRange:NSMakeRange(-1, 1) replacementString:@"0"];
+    }
   }
 }
 
