@@ -26,16 +26,16 @@
         if (self.toggleButton == nil) {
             
             // create custom button
-            self.toggleButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            self.toggleButton.frame = CGRectMake(0, 163, 105, 53);
-            self.toggleButton.adjustsImageWhenHighlighted = NO;
-            [self.toggleButton setImage:[UIImage imageNamed:@"toggleButtonUp.png"] forState:UIControlStateNormal];
-            [self.toggleButton setImage:[UIImage imageNamed:@"toggleButtonDown.png"] forState:UIControlStateHighlighted];
-            [self.toggleButton addTarget:self action:@selector(toggleButton:) forControlEvents:UIControlEventTouchUpInside];
+            _toggleButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            _toggleButton.frame = CGRectMake(0, 163, 105, 53);
+            _toggleButton.adjustsImageWhenHighlighted = NO;
+            [_toggleButton setImage:[UIImage imageNamed:@"toggleButtonUp.png"] forState:UIControlStateNormal];
+            [_toggleButton setImage:[UIImage imageNamed:@"toggleButtonDown.png"] forState:UIControlStateHighlighted];
+            [_toggleButton addTarget:self action:@selector(toggleButton:) forControlEvents:UIControlEventTouchUpInside];
             
         }
         
-        self.newButton = TRUE;
+        _newButton = TRUE;
     }
     
     return self;
