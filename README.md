@@ -1,4 +1,4 @@
-MSCurrencyFormatter
+HMFCurrencyFormatter
 ===================
 
 A piece of code that will automatically format a uitextfield with a numberpad to behave like an ATM
@@ -8,12 +8,12 @@ Here's an example
 >Create a property for the formatter
 >
 >```objective-c
->@property (nonatomic, retain) MSCurrencyFormatter *priceFormatter;
+>@property (nonatomic, retain) HMFCurrencyFormatter *priceFormatter;
 >```
 >In the viewDidLoad make sure to initalize
 >
 >```objective-c
->self.priceFormatter = [[MSCurrencyFormatter alloc] init];
+>self.priceFormatter = [[HMFCurrencyFormatter alloc] init];
 >```
 >
 >Wherever you setup your textfield set the priceFormatter as the delegate
@@ -33,7 +33,7 @@ Here's an example
 >```objective-c
 >- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
 >  
->  textField.text = [MSCurrencyFormatter formatTextField:textField withReplacementString:string]
+>  textField.text = [HMFCurrencyFormatter formatTextField:textField withReplacementString:string]
 >  return NO;
 >}
 >```
