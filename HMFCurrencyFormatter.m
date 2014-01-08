@@ -1,14 +1,13 @@
 //
-//  MSCurrencyFormatter.m
-//  MA Mobile
+//  HMFCurrencyFormatter.m
 //
 //  Created by Brandon Butler on 8/30/12.
-//  Copyright (c) 2012 POS Management. All rights reserved.
+//  Copyright (c) 2012 Brandon Butler. All rights reserved.
 //
 
-#import "MSCurrencyFormatter.h"
+#import "HMFCurrencyFormatter.h"
 
-@interface MSCurrencyFormatter ()
+@interface HMFCurrencyFormatter ()
 
 @property (nonatomic, strong) UIButton *toggleButton;
 @property (nonatomic, weak) UITextField *assignedTextField;
@@ -17,7 +16,7 @@
 
 @end
 
-@implementation MSCurrencyFormatter
+@implementation HMFCurrencyFormatter
 
 - (id)init {
     
@@ -56,7 +55,6 @@
     if (![[[UIDevice currentDevice] model] isEqualToString:@"iPad"]) {
         
         //NSLog(@"start watching for keyboard");
-        
 
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(keyboardDidShow:)
@@ -77,20 +75,15 @@
     }
 }
 
-
-
 - (void)keyboardDidShow:(NSNotification *)note {
     
     self.keyboardDidShow = TRUE;
 
     if ([self.assignedTextField isFirstResponder] && self.newButton) {
-        
-        //NSLog(@"A new button is needed.");
-        
         [self addButtonToKeyboard];
         
     }
-    
+
 }
 
 
@@ -105,11 +98,11 @@
             //NSLog(@"keyboard started editing and newButton is needed and the keyboard is already visible");
             [self addButtonToKeyboard];
         }
-        
+
         //textfield must have something in it otherwise this will crash.
-        if ([self.assignedTextField.text length] == 0 && self.assignedTextField.delegate == self) {
-            self.assignedTextField.text = @"$0.00";
-        }
+ -      if ([self.assignedTextField.text length] == 0 && self.assignedTextField.delegate == self) {
+ -          self.assignedTextField.text = @"$0.00";
+ -      }
 
         self.toggleButton.hidden = NO;
         self.toggleButton.userInteractionEnabled = YES;
@@ -120,11 +113,9 @@
         self.toggleButton.userInteractionEnabled = NO;
         
     }
- 
 }
 
 - (void)keyboardWasDismissed:(NSNotification *)note {
-    
     
     if ([self doesAlertViewExist]) {
         //alertViewExists therefore uitextfield will soon be released stop watching for events now to fix memory management bugs.
@@ -133,24 +124,16 @@
     
     self.newButton = TRUE;
     self.keyboardDidShow = FALSE;
-    //NSLog(@"Button is gone");
-    
 }
 
 -(void)endWatchingForKeyboard {
-    
-    //NSLog(@"end watching for keyboard");
-        
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    
 }
 
 #pragma mark Private Methods
 
 -(void)addButtonToKeyboard {
     
-    //NSLog(@"add Button");
-
     //If a alertview is present with a textfield the viewIndex will be different than 1
     NSInteger viewIndex = 1;
     
@@ -173,11 +156,10 @@
             
         }
     }
-    
+  
 }
 
 -(void)toggleButton:(id)sender {
-
     
     if ([self.assignedTextField.text length] > 0) {
         
@@ -198,30 +180,29 @@
     return NO;
 }
 
-#pragma mark UITextField Delegate Methods
+#pragma mark - UITextField Delegate Methods
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     
-    textField.text = [MSCurrencyFormatter formatTextField:textField withCharactersInRange:range withReplacementString:string];
+    textField.text = [HMFCurrencyFormatter formatTextField:textField withCharactersInRange:range withReplacementString:string];
     return NO;
-    
 }
 
-#pragma mark Class Methods
+#pragma mark - Class Methods
 
 +(NSString *)formatTextField:(UITextField *)textField withCharactersInRange:(NSRange)range withReplacementString:(NSString *)string {
     
     //If user types a - just flip/flop to a negative or positive number.
     if ([string hasSuffix:@"-"]) {
-        if ([[textField.text substringToIndex:1] isEqualToString:@"-"]) {
-            
-            return textField.text = [textField.text substringFromIndex:1];
-            
-        }
+        
+        if (textField.text.length != 0) {
+            if ([[textField.text substringToIndex:1] isEqualToString:@"-"]) {
+                return textField.text = [textField.text substringFromIndex:1];
+            }
             
             NSString *newString = @"-";
             return textField.text = [newString stringByAppendingString:textField.text];
-        
+        }
     }
     
     //This is for if we're removing the negative
@@ -258,12 +239,11 @@
     // Next Check if it is negative and remember that.
     BOOL isNegative = FALSE;
     
-    if ([[textField.text substringToIndex:1] isEqualToString:@"-"]) {
+    if ([textField.text length] && [[textField.text substringToIndex:1] isEqualToString:@"-"]) {
         
         isNegative = TRUE;
         
     }
-    
     
     //only allow numbers to be entered via keypad/keyboard
     NSCharacterSet *myCharSet = [NSCharacterSet characterSetWithCharactersInString:@"0123456789"];
@@ -274,7 +254,6 @@
             return textField.text;
         }
     }
-    
     // Check the length of the string
     if ([string length]) {
         if ([enteredDigits length] > 10) {
@@ -318,7 +297,6 @@
     }
     
     return results;
-    
 }
 
 +(NSDecimalNumber *)decimalNumberFromFormattedString:(NSString *)string {
@@ -340,8 +318,7 @@
     }
     
     return [NSDecimalNumber decimalNumberWithString:strippedString];
-    
 }
     
-
 @end
+
