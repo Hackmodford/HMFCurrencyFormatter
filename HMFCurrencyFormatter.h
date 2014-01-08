@@ -1,6 +1,5 @@
 //
 //  HMFCurrencyFormatter.h
-//  MA Mobile
 //
 //  Created by Brandon Butler on 8/30/12.
 //  Copyright (c) 2012 Brandon Butler. All rights reserved.
